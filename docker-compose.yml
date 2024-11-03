@@ -1,0 +1,24 @@
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_USER: amila
+      MYSQL_PASSWORD: amila
+      MYSQL_DATABASE: irusri-todo
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - todo-rest-api
+    restart: unless-stopped
+
+volumes:
+  mysql:
+    driver: local
+
+networks:
+  todo-rest-api:
+    driver: bridge
