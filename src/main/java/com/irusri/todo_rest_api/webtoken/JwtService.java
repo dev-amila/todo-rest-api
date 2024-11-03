@@ -53,4 +53,10 @@ public class JwtService {
         Claims claims = getClaims(jwt);
         return claims.getExpiration().after(Date.from(Instant.now()));
     }
+
+    public String getEmailFromToken(String token){
+        String jwt = token.substring(7);
+        Claims claims = getClaims(jwt);
+        return claims.getSubject();
+    }
 }

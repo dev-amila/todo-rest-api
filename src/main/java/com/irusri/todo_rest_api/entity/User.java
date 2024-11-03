@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Table(name = "users")
@@ -53,41 +54,26 @@ public class User  implements UserDetails {
         return email;
     }
 
-    public void setPassword(String password){
-        this.password =  password;
-    }
-
-//    @Override
-//    public String getPassword() {
-//        return password;
-//    }
-//
-//    @Override
-//    public String getUsername() {
-//        return email;
-//    }
-
     @Override
     public boolean isAccountNonExpired() {
-//        return UserDetails.super.isAccountNonExpired();
         return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-//        return UserDetails.super.isAccountNonLocked();
         return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-//        return UserDetails.super.isCredentialsNonExpired();
         return true;
     }
 
     @Override
     public boolean isEnabled() {
-//        return UserDetails.super.isEnabled();
         return true;
     }
+
+
+
 }

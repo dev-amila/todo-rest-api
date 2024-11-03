@@ -1,31 +1,37 @@
 package com.irusri.todo_rest_api.entity;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.sql.Timestamp;
 
-import java.util.Collection;
 
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
+@Data
 @AllArgsConstructor
 public class Todo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "task", nullable = false)
     private String task;
+
+    @Column(name = "isCompleted", nullable = false)
     private Boolean isCompleted;
-    private  String createdAt;
+
+    @Column(name = "createdAt")
+    private Timestamp createdAt;
+
+    @Column(name = "deadline")
+    private Timestamp deadline;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
+
 
 }

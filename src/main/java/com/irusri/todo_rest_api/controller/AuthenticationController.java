@@ -15,25 +15,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
+@RequiredArgsConstructor
 public class AuthenticationController {
 
     private final UserDao userDao;
-
     private final PasswordEncoder passwordEncoder;
-
     private final AuthenticationManager authenticationManager;
-
     private final JwtService jwtService;
-
     private final UserDetailService userDetailService;
-
-    public AuthenticationController(UserDao userDao, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, UserDetailService userDetailService) {
-        this.userDao = userDao;
-        this.passwordEncoder = passwordEncoder;
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
-        this.userDetailService = userDetailService;
-    }
 
     @PostMapping("/resgister")
     public User createUser(@RequestBody User user) {
