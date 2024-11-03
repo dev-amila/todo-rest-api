@@ -1,6 +1,7 @@
 package com.irusri.todo_rest_api.entity;
 
 
+import com.irusri.todo_rest_api.enums.Priority;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +24,9 @@ public class Todo {
     @Column(name = "isCompleted", nullable = false)
     private Boolean isCompleted;
 
+    @Enumerated(EnumType.STRING)
+    private Priority priority;
+
     @Column(name = "createdAt")
     private Timestamp createdAt;
 
@@ -32,6 +36,4 @@ public class Todo {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
-
-
 }

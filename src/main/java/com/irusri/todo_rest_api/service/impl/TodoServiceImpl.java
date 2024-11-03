@@ -20,8 +20,6 @@ public class TodoServiceImpl implements TodoService {
 
     private final TodoDao todoDao;
 
-
-
     @Override
     public PaginatedTodoResponseAllDTO getAllTodos(String email, String searchText, int page, int size) {
         List<Todo> todoForGetAllTodos = todoDao.findTodoForGetAllTodos(email,searchText,PageRequest.of(page, size));
@@ -36,25 +34,29 @@ public class TodoServiceImpl implements TodoService {
                 ))
                 .collect(Collectors.toList());
 
-
-//        ArrayList<ResponseTodoAllDTO> dtoList = new ArrayList<>();
-//        for(Todo t : todoForGetAllTodos){
-//            if(t.getUser().getEmail() != email) continue;
-//            dtoList.add(
-//                    new ResponseTodoAllDTO(
-//                            t.getId(),
-//                            t.getTask(),
-//                            t.getIsCompleted(),
-//                            t.getCreatedAt(),
-//                            t.getDeadline(),
-//                            t.getUser()
-//                    )
-//            );
-//        }
-
         return new PaginatedTodoResponseAllDTO(
                 todoDao.findTodoCountForGetAllTodos(email,searchText),
                 dtoList
         );
     }
+
+//    @Override
+//    public PaginatedTodoResponseAllDTO getAllSortedTodos(String email, String priority, String dueDate, String order) {
+//        List<Todo> todoForGetAllTodos = todoDao.findSortedTodoForGetAllTodos(email,priority,dueDate, order );
+//        List<ResponseTodoAllDTO> dtoList = todoForGetAllTodos.stream()
+//                .map(t -> new ResponseTodoAllDTO(
+//                        t.getId(),
+//                        t.getTask(),
+//                        t.getIsCompleted(),
+//                        t.getCreatedAt(),
+//                        t.getDeadline(),
+//                        t.getUser()
+//                ))
+//                .collect(Collectors.toList());
+//
+//        return new PaginatedTodoResponseAllDTO(
+//                todoDao.findSortedTodoCountForGetAllTodos(email,priority,dueDate),
+//                dtoList
+//        );
+//    }
 }

@@ -4,4 +4,5 @@ import com.irusri.todo_rest_api.dto.response.paginated.PaginatedTodoResponseAllD
 
 public interface TodoService {
     PaginatedTodoResponseAllDTO getAllTodos(String email, String searchText, int page, int size);
+//    PaginatedTodoResponseAllDTO getAllSortedTodos(String email, String priority, String dueDate, String order);
 }

@@ -11,6 +11,7 @@ import com.irusri.todo_rest_api.webtoken.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -30,6 +31,9 @@ public class TodoController {
     private final JwtService jwtService;
     private final TodoService todoService;
 
+
+
+
     @GetMapping(path ="/list",produces = "application/json", params = {"searchText", "page", "size"})
     public ResponseEntity<StandardResponse> get(
             @RequestHeader (name="Authorization") String token,
@@ -39,7 +43,6 @@ public class TodoController {
     ) {
         String email = jwtService.getEmailFromToken(token);
 
-
         PaginatedTodoResponseAllDTO responseData = todoService.getAllTodos( email,searchText, page, size);
 
         return new ResponseEntity<>(
@@ -48,27 +51,43 @@ public class TodoController {
         );
     }
 
+
+
+
+
     @GetMapping
     public List<Todo> fls(){
         return todoDao.findAll();
     }
 
-//    @GetMapping(path = "/member/record", params = {"searchText", "page", "size"})
-//    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_MANAGER','ROLE_STUDENT')")
-//    public ResponseEntity<StandardResponse> getAllRecord(
-//            @RequestParam String searchText,
-//            @RequestParam int page,
-//            @RequestParam int size
+
+
+
+//    @GetMapping(path ="/sort",produces = "application/json", params = {"priority", "dueDate", "order"})
+//    public ResponseEntity<StandardResponse> get(
+//            @RequestHeader (name="Authorization") String token,
+//            @RequestParam String priority,
+//            @RequestParam String dueDate,
+//            @RequestParam String order
 //    ) {
+//        String email = jwtService.getEmailFromToken(token);
+//
+//        PaginatedTodoResponseAllDTO responseData = todoService.getAllSortedTodos( email,priority, dueDate, order);
+//
 //        return new ResponseEntity<>(
-//                new StandardResponse(200, "Records List", recordService.getAllRecord(searchText, page, size)),
+//                new StandardResponse(200, "Todo List", responseData),
 //                HttpStatus.OK
 //        );
 //    }
 
+
+
+
+
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public HashMap<String,String> add(@RequestHeader (name="Authorization") String token,@RequestBody Todo todo){
+    public HashMap<String,String> createTodo(@RequestHeader (name="Authorization") String token,@RequestBody Todo todo){
 
         todo.setCreatedAt(new Timestamp( new Date().getTime()));
         todo.setIsCompleted(false);
@@ -94,55 +113,53 @@ public class TodoController {
     }
 
 
-    @PutMapping("/update")
-    @ResponseStatus(HttpStatus.CREATED)
-    public HashMap<String,String> update(@RequestBody Todo todo){
 
+
+
+
+    @PutMapping("/changestatus/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public HashMap<String,String> updateStatus(@RequestHeader (name="Authorization") String token, @PathVariable Integer id){
+
+        String email = jwtService.getEmailFromToken(token);
         HashMap<String,String> responce = new HashMap<>();
         String errors="";
 
-        Optional<Todo> todo1 = todoDao.findByTask(todo.getTask());
-        Optional<Todo> todo2 = todoDao.findById(todo.getId());
+        Optional<Todo> todo = todoDao.findById(id);
+        Todo todo1 = todo.get();
 
-//        if(todo1!=null && todo.getId()!= todo1.get().getId())
-//            errors = errors+"<br> Task Name Exist please use different task name ";
-//        if(emp2!=null && employee.getId()!=emp2.getId())
-//            errors = errors+"<br> Existing NIC";
-//
-//        if(errors=="") employeedao.save(employee);
-//        else errors = "Server Validation Errors : <br> "+errors;
-//
-//        responce.put("id",String.valueOf(employee.getId()));
-//        responce.put("url","/employees/"+employee.getId());
-//        responce.put("errors",errors);
+        if(todo.isEmpty())
+            errors = errors+"<br> there is no task with this id.";
+
+        if(!todo1.getUser().getEmail().equals(email))
+            errors = errors+"<br> You have no permission to"+email+ todo1.getUser().getEmail()+" update the state of the Task.";
+
+        if(errors=="") {
+            todo1.setIsCompleted(!todo1.getIsCompleted());
+            todoDao.save(todo1);
+        }
+        else errors = "Server Validation Errors : <br> "+errors;
+
+        responce.put("id",String.valueOf(todo1.getId()));
+        responce.put("url","/todos/"+todo1.getId());
+        responce.put("errors",errors);
 
         return responce;
     }
 
-//    @PutMapping("/changestatus")
-//    @ResponseStatus(HttpStatus.CREATED)
-//    public HashMap<String,String> updateStatus(@RequestBody TodoStatus todoStatus){
-//
-//        HashMap<String,String> responce = new HashMap<>();
-//        String errors="";
-//
-//        Optional<Todo> todo1 = todoDao.findById(todoStatus.id());
-//
-//        if(todo1.isEmpty())
-//            errors = errors+"<br> there is no task with this id.";
-//
-//
-//        if(errors=="") {
-//            todo1.
-//            todoDao.save(todo1);
-//        }
-//        else errors = "Server Validation Errors : <br> "+errors;
-//
-//        responce.put("id",String.valueOf(employee.getId()));
-//        responce.put("url","/employees/"+employee.getId());
-//        responce.put("errors",errors);
-//
-//        return responce;
-//    }
+
+
+
+    @DeleteMapping(path = "/delete{id}")
+    public ResponseEntity<StandardResponse> deleteJobByOwner(
+            @PathVariable Integer id
+    ) {
+        todoDao.deleteById(id);
+        return new ResponseEntity<>(
+                new StandardResponse(204, "Todo was Deleted",
+                        null),
+                HttpStatus.NO_CONTENT
+        );
+    }
 
 }
