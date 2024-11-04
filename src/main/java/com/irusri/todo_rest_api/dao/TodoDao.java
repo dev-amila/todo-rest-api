@@ -11,6 +11,10 @@ import java.util.Optional;
 
 public interface TodoDao extends JpaRepository<Todo, Integer> {
 
+    @Query("select t FROM Todo t where t.id=:id")
+    Todo  findByMyId( Integer id);
+
+
     @Query("select t from Todo t where t.task = :task")
     Optional<Todo> findByTask(String task);
 

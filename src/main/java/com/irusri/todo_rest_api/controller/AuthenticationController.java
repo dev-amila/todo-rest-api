@@ -24,13 +24,13 @@ public class AuthenticationController {
     private final JwtService jwtService;
     private final UserDetailService userDetailService;
 
-    @PostMapping("/resgister")
+    @PostMapping("/register")
     public User createUser(@RequestBody User user) {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userDao.save(user);
     }
 
-    @PostMapping("/authenticate")
+    @PostMapping("/login")
     public String authentication(@RequestBody LoginForm loginForm) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 loginForm.email(), loginForm.password()

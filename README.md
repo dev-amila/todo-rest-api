@@ -1,6 +1,10 @@
 # todo-rest-api
 This project is a To-Do REST API built with Spring Boot. It uses Docker to run a MySQL database and secures endpoints with Spring Security and JWT (JSON Web Tokens). The application provides CRUD (Create, Read, Update, Delete) operations for managing to-do items.
 
+
+
+
+
 ### Table of Contents
 * Features
 * Technologies
@@ -62,14 +66,41 @@ Here are the key endpoints:
 * Authentication
 
     * POST /auth/register - Register a new user.
-    * POST /auth/login - Login and retrieve JWT token.
-* To-Do Management (JWT token required)
+     ```bash
+    {
+      "username":"name",
+      "password":"12345678",
+      "email":"example@gmail.com"
+      }
+     ```
 
-    * GET /api/todos - Retrieve all to-do items.
-  *   GET /api/todos/{id} - Retrieve a specific to-do item.
-  * POST /api/todos - Create a new to-do item.
-  * PUT /api/todos/{id} - Update an existing to-do item.
-  * DELETE /api/todos/{id} - Delete a to-do item.
+    * POST /auth/login - Login and retrieve JWT token.
+      ```bash
+        {
+          "email":"examle@gmail.com",
+          "password":"12345678"
+        }
+      ```
+
+  * To-Do Management (JWT token required)
+
+    * GET /api/todos - Retrieve all to-do items. this method is retrieve all the todos related with particular user
+    here have implemented search facility with pagination in order to call the endpoint 
+    ```bash
+     url : http://localhost:8080/api/todos?searchText=&page=0&size=10
+    ```
+    * GET /api/todos/{id} - Retrieve a specific to-do item.
+    * POST /api/todos - Create a new to-do item.
+    ```bash
+      {
+      "task": "Example Task",
+      "deadline": "2024-11-04T10:00:00Z",
+      "priority": "HIGH"
+      }
+    ```
+    createdAt Date will be add through the system. By default isComplete is false once you can toggle that using change status url method
+    * PUT /api/todos/changestatus/{id} - can toggle isCompleted field in to-do item.
+    * DELETE /api/todos/{id} - Delete a to-do item.
   
 ### License
   This project is licensed under the MIT License.

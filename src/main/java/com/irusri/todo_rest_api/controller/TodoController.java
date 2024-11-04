@@ -9,8 +9,11 @@ import com.irusri.todo_rest_api.service.TodoService;
 import com.irusri.todo_rest_api.util.StandardResponse;
 import com.irusri.todo_rest_api.webtoken.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.PermissionDeniedDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.AuthorizationServiceException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,11 +21,10 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(value = "/todos")
+@RequestMapping(value = "/api/todos")
 @RequiredArgsConstructor
 public class TodoController {
 
@@ -34,7 +36,7 @@ public class TodoController {
 
 
 
-    @GetMapping(path ="/list",produces = "application/json", params = {"searchText", "page", "size"})
+    @GetMapping(produces = "application/json", params = {"searchText", "page", "size"})
     public ResponseEntity<StandardResponse> get(
             @RequestHeader (name="Authorization") String token,
             @RequestParam String searchText,
@@ -52,14 +54,16 @@ public class TodoController {
     }
 
 
-
-
-
-    @GetMapping
-    public List<Todo> fls(){
-        return todoDao.findAll();
+    @GetMapping(path ="/{id}", produces = "application/json")
+    @ResponseStatus(HttpStatus.OK)
+    public Todo get(@RequestHeader (name="Authorization") String token, @PathVariable Integer id) throws Exception {
+        String email = jwtService.getEmailFromToken(token);
+        Todo todo=  todoDao.findByMyId(id);
+        if(!todo.getUser().getEmail().equals(email)) {
+            throw new AccessDeniedException("You are not Permitted to view this");
+        }
+        return todoDao.findByMyId(id);
     }
-
 
 
 
@@ -112,7 +116,35 @@ public class TodoController {
         return response;
     }
 
+    @PutMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public HashMap<String,String> update(@RequestHeader (name="Authorization") String token, @RequestBody Todo todo){
 
+        String email = jwtService.getEmailFromToken(token);
+        HashMap<String,String> responce = new HashMap<>();
+        String errors="";
+
+        Todo todo1 = todoDao.findByMyId(todo.getId());
+
+        if(todo1 == null)
+            errors = errors+"<br> there is no task with this id.";
+
+        if(!todo1.getUser().getEmail().equals(email))
+            errors = errors+"<br> You have no permission to update the state of the Task.";
+
+        if(errors=="") {
+            todo.setIsCompleted(false);
+            todo.setUser(todo1.getUser());
+            todoDao.save(todo);
+        }
+        else errors = "Server Validation Errors : <br> "+errors;
+
+        responce.put("id",String.valueOf(todo1.getId()));
+        responce.put("url","/todos/"+todo1.getId());
+        responce.put("errors",errors);
+
+        return responce;
+    }
 
 
 
@@ -148,18 +180,26 @@ public class TodoController {
     }
 
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public HashMap<String,String> delete(@PathVariable Integer id){
+        HashMap<String,String> responce = new HashMap<>();
+        String errors="";
 
+        Todo todo = todoDao.findByMyId(id);
 
-    @DeleteMapping(path = "/delete{id}")
-    public ResponseEntity<StandardResponse> deleteJobByOwner(
-            @PathVariable Integer id
-    ) {
-        todoDao.deleteById(id);
-        return new ResponseEntity<>(
-                new StandardResponse(204, "Todo was Deleted",
-                        null),
-                HttpStatus.NO_CONTENT
-        );
+        if(todo==null)
+            errors = errors+"<br> Todo item  Does Not Existed";
+
+        if(errors=="") todoDao.delete(todo);
+
+        else errors = "Server Validation Errors : <br> "+errors;
+
+        responce.put("id",String.valueOf(id));
+        responce.put("url","/todo/"+id);
+        responce.put("errors",errors);
+
+        return responce;
     }
 
 }
