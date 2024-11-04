@@ -75,22 +75,22 @@ Here are the key endpoints:
      ```
 
     * POST /auth/login - Login and retrieve JWT token.
-      ```bash
-        {
-          "email":"examle@gmail.com",
-          "password":"12345678"
-        }
-      ```
-
-  * To-Do Management (JWT token required)
-
-    * GET /api/todos - Retrieve all to-do items. this method is retrieve all the todos related with particular user
-    here have implemented search facility with pagination in order to call the endpoint 
     ```bash
-     url : http://localhost:8080/api/todos?searchText=&page=0&size=10
+      {
+        "email":"examle@gmail.com",
+        "password":"12345678"
+      }
     ```
-    * GET /api/todos/{id} - Retrieve a specific to-do item.
-    * POST /api/todos - Create a new to-do item.
+
+* To-Do Management (JWT token required)
+
+  * GET /api/todos - Retrieve all to-do items. this method is retrieve all the todos related with particular user
+  here have implemented search facility with pagination in order to call the endpoint 
+  ```bash
+   url : http://localhost:8080/api/todos?searchText=&page=0&size=10
+  ```
+  * GET /api/todos/{id} - Retrieve a specific to-do item.
+  * POST /api/todos - Create a new to-do item.
     ```bash
       {
       "task": "Example Task",
@@ -99,8 +99,8 @@ Here are the key endpoints:
       }
     ```
     createdAt Date will be add through the system. By default isComplete is false once you can toggle that using change status url method
-    * PUT /api/todos/changestatus/{id} - can toggle isCompleted field in to-do item.
-    * DELETE /api/todos/{id} - Delete a to-do item.
+  * PUT /api/todos/changestatus/{id} - can toggle isCompleted field in to-do item.
+  * DELETE /api/todos/{id} - Delete a to-do item.
   
 ### License
   This project is licensed under the MIT License.
