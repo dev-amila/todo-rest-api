@@ -9,12 +9,9 @@ import com.irusri.todo_rest_api.service.TodoService;
 import com.irusri.todo_rest_api.util.StandardResponse;
 import com.irusri.todo_rest_api.webtoken.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.PermissionDeniedDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.AuthorizationServiceException;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
@@ -36,7 +33,7 @@ public class TodoController {
 
 
 
-    @GetMapping(produces = "application/json", params = {"searchText", "page", "size"})
+    @GetMapping(path = "/list", produces = "application/json", params = {"searchText", "page", "size"})
     public ResponseEntity<StandardResponse> get(
             @RequestHeader (name="Authorization") String token,
             @RequestParam String searchText,
@@ -58,11 +55,16 @@ public class TodoController {
     @ResponseStatus(HttpStatus.OK)
     public Todo get(@RequestHeader (name="Authorization") String token, @PathVariable Integer id) throws Exception {
         String email = jwtService.getEmailFromToken(token);
-        Todo todo=  todoDao.findByMyId(id);
-        if(!todo.getUser().getEmail().equals(email)) {
-            throw new AccessDeniedException("You are not Permitted to view this");
-        }
-        return todoDao.findByMyId(id);
+        Optional<Todo> optionalTodo=  todoDao.findById(id);
+       if(optionalTodo.isPresent()){
+           Todo todo = optionalTodo.get();
+            if(!todo.getUser().getEmail().equals(email)) {
+                throw new AccessDeniedException("You are not Permitted to view this");
+            }
+            return todoDao.findByMyId(id);
+       }else{
+           throw new NullPointerException("There is no with this id");
+       }
     }
 
 
@@ -116,34 +118,38 @@ public class TodoController {
         return response;
     }
 
-    @PutMapping
+    @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public HashMap<String,String> update(@RequestHeader (name="Authorization") String token, @RequestBody Todo todo){
+    public ResponseEntity<HashMap<String, String>> update(@RequestHeader (name="Authorization") String token,@PathVariable Integer id , @RequestBody Todo updatedTodo){
 
         String email = jwtService.getEmailFromToken(token);
-        HashMap<String,String> responce = new HashMap<>();
-        String errors="";
+        HashMap<String,String> response = new HashMap<>();
 
-        Todo todo1 = todoDao.findByMyId(todo.getId());
+        Optional<Todo> optionalTodo = todoDao.findById(id);
 
-        if(todo1 == null)
-            errors = errors+"<br> there is no task with this id.";
-
-        if(!todo1.getUser().getEmail().equals(email))
-            errors = errors+"<br> You have no permission to update the state of the Task.";
-
-        if(errors=="") {
-            todo.setIsCompleted(false);
-            todo.setUser(todo1.getUser());
-            todoDao.save(todo);
+        if(optionalTodo.isEmpty()){
+            response.put( "error", "Todo item not found.");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
-        else errors = "Server Validation Errors : <br> "+errors;
+        Todo existingTodo = optionalTodo.get();
+        if(!existingTodo.getUser().getEmail().equals(email)){
+            response.put("error","You have no permission to update the state of the Task.");
+            return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+        }
 
-        responce.put("id",String.valueOf(todo1.getId()));
-        responce.put("url","/todos/"+todo1.getId());
-        responce.put("errors",errors);
+        existingTodo.setTask(updatedTodo.getTask());
+        existingTodo.setIsCompleted(false);
+        existingTodo.setPriority(updatedTodo.getPriority());
+        existingTodo.setDeadline(updatedTodo.getDeadline());
 
-        return responce;
+        todoDao.save(existingTodo);
+
+
+        response.put("message", "Toto item updated successfully.");
+        response.put("id",String.valueOf(existingTodo.getId()));
+        response.put("url","/todos/"+existingTodo.getId());
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 
@@ -154,52 +160,51 @@ public class TodoController {
     public HashMap<String,String> updateStatus(@RequestHeader (name="Authorization") String token, @PathVariable Integer id){
 
         String email = jwtService.getEmailFromToken(token);
-        HashMap<String,String> responce = new HashMap<>();
+        HashMap<String,String> response = new HashMap<>();
         String errors="";
 
-        Optional<Todo> todo = todoDao.findById(id);
-        Todo todo1 = todo.get();
-
-        if(todo.isEmpty())
+        Optional<Todo> optionalTodo = todoDao.findById(id);
+        if(optionalTodo.isEmpty()){
             errors = errors+"<br> there is no task with this id.";
+        }else{
+            Todo todo = optionalTodo.get();
 
-        if(!todo1.getUser().getEmail().equals(email))
-            errors = errors+"<br> You have no permission to"+email+ todo1.getUser().getEmail()+" update the state of the Task.";
+            if(!todo.getUser().getEmail().equals(email))
+                errors = errors+"<br> You have no permission to update the state of the Task.";
 
-        if(errors=="") {
-            todo1.setIsCompleted(!todo1.getIsCompleted());
-            todoDao.save(todo1);
+            if(errors=="") {
+                todo.setIsCompleted(!todo.getIsCompleted());
+                todoDao.save(todo);
+            }
         }
-        else errors = "Server Validation Errors : <br> "+errors;
-
-        responce.put("id",String.valueOf(todo1.getId()));
-        responce.put("url","/todos/"+todo1.getId());
-        responce.put("errors",errors);
-
-        return responce;
+        if(!errors.isEmpty()){
+            response.put("errors", "Server Validation Errors : <br> " + errors);
+        }
+        response.put("id", String.valueOf(id));
+        response.put("url", "/todos/" + id);
+        return response;
     }
 
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public HashMap<String,String> delete(@PathVariable Integer id){
-        HashMap<String,String> responce = new HashMap<>();
-        String errors="";
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<HashMap<String, String>> delete(@RequestHeader (name="Authorization") String token,@PathVariable Integer id){
 
+        String email = jwtService.getEmailFromToken(token);
+
+        HashMap<String, String> response = new HashMap<>();
         Todo todo = todoDao.findByMyId(id);
+        if (todo == null) {
+            response.put("error", "Todo item does not exist");
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        if(!todo.getUser().getEmail().equals(email))
+            throw new AccessDeniedException("You are not Permitted to view this");
 
-        if(todo==null)
-            errors = errors+"<br> Todo item  Does Not Existed";
-
-        if(errors=="") todoDao.delete(todo);
-
-        else errors = "Server Validation Errors : <br> "+errors;
-
-        responce.put("id",String.valueOf(id));
-        responce.put("url","/todo/"+id);
-        responce.put("errors",errors);
-
-        return responce;
+        todoDao.delete(todo);
+        response.put("message", "Todo item deleted successfully");
+        response.put("id", String.valueOf(id));
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.irusri.todo_rest_api.webtoken;
 
+import com.irusri.todo_rest_api.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -58,5 +59,10 @@ public class JwtService {
         String jwt = token.substring(7);
         Claims claims = getClaims(jwt);
         return claims.getSubject();
+    }
+    public String getIdFromToken(String token){
+        String jwt = token.substring(7);
+        Claims claims = getClaims(jwt);
+        return claims.getId();
     }
 }

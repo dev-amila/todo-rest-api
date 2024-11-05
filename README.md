@@ -16,7 +16,7 @@ This project is a To-Do REST API built with Spring Boot. It uses Docker to run a
 
 ### Technologies
 
-* Java 17
+* Java 22
 * Spring Boot 3.x
 * Spring Security
 * JWT for authentication
@@ -27,7 +27,7 @@ This project is a To-Do REST API built with Spring Boot. It uses Docker to run a
 ## Getting Started
 
 ### Prerequisites
-* Java 17 or higher installed on your machine.
+* Java 22 or higher installed on your machine.
 * Docker and Docker Compose installed for database setup.
 * Maven for dependency management and building the application.
 
