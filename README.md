@@ -98,8 +98,23 @@ Here are the key endpoints:
       "priority": "HIGH"
       }
     ```
-    createdAt Date will be add through the system. By default isComplete is false once you can toggle that using change status url method
+    createdAt Date will be add through the system. By default isComplete is false. You can toggle that using change status url method
   * PUT /api/todos/changestatus/{id} - can toggle isCompleted field in to-do item.
+  * PUT /api/todos/{id} - can toggle isCompleted field in to-do item.
+     ```bash
+      {
+      "task": "Task updated",
+      "isCompleted": false,
+      "priority": "LOW",
+      "createdAt": "2024-11-05T14:43:10.345+00:00",
+      "deadline": "2024-11-09T10:00:00.000+00:00",
+      "user": {
+        "id": 1,
+        "username": "amila@gmail.com",
+        "email": "amila@gmail.com",
+        }
+      }
+    ```
   * DELETE /api/todos/{id} - Delete a to-do item.
   
 ### License

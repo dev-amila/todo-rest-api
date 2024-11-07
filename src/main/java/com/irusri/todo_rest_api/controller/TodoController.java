@@ -9,6 +9,8 @@ import com.irusri.todo_rest_api.service.TodoService;
 import com.irusri.todo_rest_api.util.StandardResponse;
 import com.irusri.todo_rest_api.webtoken.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
@@ -31,14 +34,12 @@ public class TodoController {
     private final TodoService todoService;
 
 
-
-
     @GetMapping(path = "/list", produces = "application/json", params = {"searchText", "page", "size"})
     public ResponseEntity<StandardResponse> get(
             @RequestHeader (name="Authorization") String token,
-            @RequestParam String searchText,
-            @RequestParam int page,
-            @RequestParam int size
+            @RequestParam(defaultValue = "") String searchText,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size
     ) {
         String email = jwtService.getEmailFromToken(token);
 
@@ -50,10 +51,28 @@ public class TodoController {
         );
     }
 
+    @GetMapping(path = "/sortlist",produces = "application/json", params = {"priority", "dueDate", "page", "size"})
+    public ResponseEntity<StandardResponse> getSortList(
+            @RequestHeader (name="Authorization") String token,
+            @RequestParam(defaultValue = "HIGH") String priority,
+            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().toString()}") String dueDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        String email = jwtService.getEmailFromToken(token);
+        Pageable pageable = PageRequest.of(page, size);
+        LocalDate dDate = LocalDate.parse(dueDate);
+        PaginatedTodoResponseAllDTO responseData = todoService.getAllSortedTodos( email,priority, dDate, pageable);
+
+        return new ResponseEntity<>(
+                new StandardResponse(200, "Todo List", responseData),
+                HttpStatus.OK
+        );
+    }
 
     @GetMapping(path ="/{id}", produces = "application/json")
     @ResponseStatus(HttpStatus.OK)
-    public Todo get(@RequestHeader (name="Authorization") String token, @PathVariable Integer id) throws Exception {
+    public Todo getById(@RequestHeader (name="Authorization") String token, @PathVariable Integer id) throws Exception {
         String email = jwtService.getEmailFromToken(token);
         Optional<Todo> optionalTodo=  todoDao.findById(id);
        if(optionalTodo.isPresent()){
@@ -69,22 +88,6 @@ public class TodoController {
 
 
 
-//    @GetMapping(path ="/sort",produces = "application/json", params = {"priority", "dueDate", "order"})
-//    public ResponseEntity<StandardResponse> get(
-//            @RequestHeader (name="Authorization") String token,
-//            @RequestParam String priority,
-//            @RequestParam String dueDate,
-//            @RequestParam String order
-//    ) {
-//        String email = jwtService.getEmailFromToken(token);
-//
-//        PaginatedTodoResponseAllDTO responseData = todoService.getAllSortedTodos( email,priority, dueDate, order);
-//
-//        return new ResponseEntity<>(
-//                new StandardResponse(200, "Todo List", responseData),
-//                HttpStatus.OK
-//        );
-//    }
 
 
 

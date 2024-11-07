@@ -7,11 +7,13 @@ import com.irusri.todo_rest_api.entity.Todo;
 import com.irusri.todo_rest_api.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 
 @Service
@@ -35,28 +37,30 @@ public class TodoServiceImpl implements TodoService {
                 .collect(Collectors.toList());
 
         return new PaginatedTodoResponseAllDTO(
-                todoDao.findTodoCountForGetAllTodos(email,searchText),
+//                todoDao.findTodoCountForGetAllTodos(email,searchText),
+                (long) dtoList.size(),
                 dtoList
         );
     }
 
-//    @Override
-//    public PaginatedTodoResponseAllDTO getAllSortedTodos(String email, String priority, String dueDate, String order) {
-//        List<Todo> todoForGetAllTodos = todoDao.findSortedTodoForGetAllTodos(email,priority,dueDate, order );
-//        List<ResponseTodoAllDTO> dtoList = todoForGetAllTodos.stream()
-//                .map(t -> new ResponseTodoAllDTO(
-//                        t.getId(),
-//                        t.getTask(),
-//                        t.getIsCompleted(),
-//                        t.getCreatedAt(),
-//                        t.getDeadline(),
-//                        t.getUser()
-//                ))
-//                .collect(Collectors.toList());
-//
-//        return new PaginatedTodoResponseAllDTO(
+    @Override
+    public PaginatedTodoResponseAllDTO getAllSortedTodos(String email, String priority, LocalDate dueDate, Pageable pageable) {
+        List<Todo> todoForGetAllTodos = todoDao.findSortedTodoForGetAllTodos(email,priority,dueDate, pageable);
+        List<ResponseTodoAllDTO> dtoList = todoForGetAllTodos.stream()
+                .map(t -> new ResponseTodoAllDTO(
+                        (int)t.getId(),
+                        t.getTask(),
+                        t.getIsCompleted(),
+                        t.getCreatedAt(),
+                        t.getDeadline(),
+                        t.getUser()
+                ))
+                .collect(Collectors.toList());
+
+        return new PaginatedTodoResponseAllDTO(
 //                todoDao.findSortedTodoCountForGetAllTodos(email,priority,dueDate),
-//                dtoList
-//        );
-//    }
+                (long) dtoList.size(),
+                dtoList
+        );
+    }
 }

@@ -1,112 +1,96 @@
 package com.irusri.todo_rest_api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.irusri.todo_rest_api.dao.TodoDao;
-import com.irusri.todo_rest_api.dao.UserDao;
 import com.irusri.todo_rest_api.entity.Todo;
-import com.irusri.todo_rest_api.entity.User;
 import com.irusri.todo_rest_api.enums.Priority;
-import com.irusri.todo_rest_api.security.UserDetailService;
-import com.irusri.todo_rest_api.webtoken.JwtService;
+import com.jayway.jsonpath.JsonPath;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultMatcher;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.ResultActions;
 
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@DisplayName("Integration tests for Todo Api endpoints")
+@Tag("integration")
 public class TodoControllerTest {
-
-    @MockBean
-    private TodoDao todoDao;
-    @MockBean
-    private UserDao userDao;
-
+    @Autowired
+    MockMvc mockMvc;
 
     @Autowired
-    private MockMvc mockMvc;
+    ObjectMapper objectMapper;
 
-    Todo todo ;
-    User user ;
-    private String token;
+    @Value("${api.endpoint.base-url}")
+    String baseUrl;
 
-
+    String token;
 
     @BeforeEach
-    public void setUp() throws Exception {
-//        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
-        user = new User();
-        user.setId(3); // Set the appropriate fields for User
-        user.setEmail("test@gmail.com");
-        user.setPassword("12345678");
-        user.setUsername("Test User");
-
-        when(userDao.findByMyId(3)).thenReturn(user);
+    void setUp() throws Exception {
+          ResultActions result =this.mockMvc.perform(post(this.baseUrl +"/auth/login")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"email\": \"test@gmail.com\", \"password\": \"12345678\"}"));
+          MvcResult mvcResult = result.andDo(print()).andReturn();
+          String contentResult = mvcResult.getResponse().getContentAsString().trim();
+        this.token = "Bearer " + contentResult;
 
 
-//        User saveduser = userDao.save(user);
-//        MvcResult result = mockMvc.perform(post("/auth/login")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(objectMapper.writeValueAsString(user)))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.token").exists())
-//                .andReturn();
-//        String responseContent = result.getResponse().getContentAsString();
-//        JsonNode jsonNode = objectMapper.readTree(responseContent);
-//        token = jsonNode.get("token").asText();
+    }
 
-        todo = new Todo();
-//        todo.setId(1); // Set an ID or let it be auto-generated if needed
-        todo.setTask("Test Todo");
-        todo.setDeadline(Timestamp.valueOf("2024-11-05 10:00:00"));
-        todo.setPriority(Priority.MEDIUM);
-        todo.setIsCompleted(false);
-        todo.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-        todo.setUser(user);
 
-        when(todoDao.save(todo)).thenReturn(todo);
+
+    @Test
+    void testFindAllTodosSuccess() throws Exception {
+        this.mockMvc.perform(get(this.baseUrl + "/api/todos/list")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("Authorization",this.token)
+                        .param("searchText", "")
+                        .param("page", "")
+                        .param("size", ""))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(jsonPath("$.message").value("Todo List"))
+                .andExpect(jsonPath("$.data.count").value(2))
+                .andExpect(jsonPath("$.data.todolist").isArray());
     }
 
 //    @Test
-//    public void getToken() throws Exception {
-//        Integer id = 3;
+//    void testAddTodoSuccess() throws Exception {
+//        Todo todo =  new Todo();
+//        todo.setTask("testTask");
+//        todo.setPriority(Priority.HIGH);
+////        todo.setDeadline();
+//        String json = this.objectMapper.writeValueAsString(todo);
 //
-//        mockMvc.perform(get("/auth/login", id)
-////                .andExpect(status().isOk())
-//                .andExpect(jsonPath("$.id").value(id))
-//                .andExpect(jsonPath("$.task").value("Test Todo"));
+//        this.mockMvc.perform(post(this.baseUrl +"/api/todos")
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(json))
+//                .andExpect(status().is(HttpStatus.CREATED.value()))
+//                .andExpect(jsonPath("$.id").isNotEmpty())
+//                .andExpect(jsonPath("$.url").value("todo/25"))
+//                .andExpect(jsonPath("$.errors").isEmpty());
+//
+//        this.mockMvc.perform(get(this.baseUrl + "/api/todos").accept(MediaType.APPLICATION_JSON))
+//                .andExpect(status().is(HttpStatus.OK.value()))
+//                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+//                .andExpect(jsonPath("$.message").value("Todo List"))
+//                .andExpect(jsonPath("$.data").isArray());
 //    }
-
-    @Test
-    public void testGetTodoById() throws Exception {
-        Integer id = 3;
-
-        when(todoDao.findById(id)).thenReturn(Optional.ofNullable(todo));
-        mockMvc.perform(get("/todos/{id}", id)
-                        .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id))
-                .andExpect(jsonPath("$.task").value("Test Todo"));
-    }
 }
