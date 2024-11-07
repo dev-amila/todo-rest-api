@@ -84,10 +84,15 @@ Here are the key endpoints:
 
 * To-Do Management (JWT token required)
 
-  * GET /api/todos - Retrieve all to-do items. this method is retrieve all the todos related with particular user
+  * GET /api/todos/list - Retrieve all to-do items. this method is retrieve all the todos related with particular user
   here have implemented search facility with pagination in order to call the endpoint 
   ```bash
-   url : http://localhost:8080/api/todos?searchText=&page=0&size=10
+   url : http://localhost:8080/api/todos/list?searchText=&page=0&size=10
+  ```
+  * GET /api/todos/sortlist - Retrieve all to-do items sorted with give date and priority parameter. this method is retrieve all the todos related with particular user
+    can sort by Priority and dueDate with pagination in order to call the endpoint
+  ```bash
+   url : http://localhost:8080/api/todos/sortlist?priority=MEDIUM&duedate=&page=0&size=10
   ```
   * GET /api/todos/{id} - Retrieve a specific to-do item.
   * POST /api/todos - Create a new to-do item.

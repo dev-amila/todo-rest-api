@@ -4,6 +4,7 @@ import com.irusri.todo_rest_api.dao.TodoDao;
 import com.irusri.todo_rest_api.dto.response.ResponseTodoAllDTO;
 import com.irusri.todo_rest_api.dto.response.paginated.PaginatedTodoResponseAllDTO;
 import com.irusri.todo_rest_api.entity.Todo;
+import com.irusri.todo_rest_api.enums.Priority;
 import com.irusri.todo_rest_api.service.TodoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +30,7 @@ public class TodoServiceImpl implements TodoService {
                 .map(t -> new ResponseTodoAllDTO(
                         t.getId(),
                         t.getTask(),
+                        t.getPriority(),
                         t.getIsCompleted(),
                         t.getCreatedAt(),
                         t.getDeadline(),
@@ -44,12 +46,13 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public PaginatedTodoResponseAllDTO getAllSortedTodos(String email, String priority, LocalDate dueDate, Pageable pageable) {
+    public PaginatedTodoResponseAllDTO getAllSortedTodos(String email, Priority priority, LocalDate dueDate, Pageable pageable) {
         List<Todo> todoForGetAllTodos = todoDao.findSortedTodoForGetAllTodos(email,priority,dueDate, pageable);
         List<ResponseTodoAllDTO> dtoList = todoForGetAllTodos.stream()
                 .map(t -> new ResponseTodoAllDTO(
                         (int)t.getId(),
                         t.getTask(),
+                        t.getPriority(),
                         t.getIsCompleted(),
                         t.getCreatedAt(),
                         t.getDeadline(),

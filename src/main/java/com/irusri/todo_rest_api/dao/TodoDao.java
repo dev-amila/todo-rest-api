@@ -1,6 +1,7 @@
 package com.irusri.todo_rest_api.dao;
 
 import com.irusri.todo_rest_api.entity.Todo;
+import com.irusri.todo_rest_api.enums.Priority;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,7 +23,7 @@ public interface TodoDao extends JpaRepository<Todo, Integer> {
     List<Todo> findTodoForGetAllTodos(String email,  @Param("searchText")  String searchText, Pageable pageable);
 
     @Query("SELECT t FROM Todo t WHERE t.user.email = :email AND t.priority = :priority AND (:dueDate IS NULL OR t.deadline <= :dueDate) ORDER BY t.deadline DESC")
-    List<Todo> findSortedTodoForGetAllTodos(@Param("email") String email, @Param("priority") String priority, @Param("dueDate") LocalDate dueDate,Pageable pageable);
+    List<Todo> findSortedTodoForGetAllTodos(@Param("email") String email, @Param("priority") Priority priority, @Param("dueDate") LocalDate dueDate, Pageable pageable);
 
 
 

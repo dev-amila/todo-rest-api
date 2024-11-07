@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 
 @Entity
@@ -31,7 +32,7 @@ public class Todo {
     private Timestamp createdAt;
 
     @Column(name = "deadline")
-    private Timestamp deadline;
+    private LocalDate deadline;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)

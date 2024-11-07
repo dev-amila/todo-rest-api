@@ -71,26 +71,28 @@ public class TodoControllerTest {
                 .andExpect(jsonPath("$.data.todolist").isArray());
     }
 
-//    @Test
-//    void testAddTodoSuccess() throws Exception {
-//        Todo todo =  new Todo();
-//        todo.setTask("testTask");
-//        todo.setPriority(Priority.HIGH);
-////        todo.setDeadline();
-//        String json = this.objectMapper.writeValueAsString(todo);
-//
-//        this.mockMvc.perform(post(this.baseUrl +"/api/todos")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(json))
-//                .andExpect(status().is(HttpStatus.CREATED.value()))
-//                .andExpect(jsonPath("$.id").isNotEmpty())
-//                .andExpect(jsonPath("$.url").value("todo/25"))
-//                .andExpect(jsonPath("$.errors").isEmpty());
-//
-//        this.mockMvc.perform(get(this.baseUrl + "/api/todos").accept(MediaType.APPLICATION_JSON))
-//                .andExpect(status().is(HttpStatus.OK.value()))
-//                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
-//                .andExpect(jsonPath("$.message").value("Todo List"))
-//                .andExpect(jsonPath("$.data").isArray());
-//    }
+    @Test
+    void testAddTodoSuccess() throws Exception {
+        Todo todo =  new Todo();
+        todo.setTask("testTask");
+        todo.setPriority(Priority.HIGH);
+//        todo.setDeadline();
+        String json = this.objectMapper.writeValueAsString(todo);
+
+        this.mockMvc.perform(post(this.baseUrl +"/api/todos")
+                        .header("Authorization",this.token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().is(HttpStatus.CREATED.value()))
+                .andExpect(jsonPath("$.id").isNotEmpty())
+                .andExpect(jsonPath("$.url").value("todo/25"))
+                .andExpect(jsonPath("$.errors").isEmpty());
+
+        this.mockMvc.perform(get(this.baseUrl + "/api/todos").header("Authorization",this.token).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(HttpStatus.OK.value()))
+                .andExpect(jsonPath("$.code").value(HttpStatus.OK.value()))
+                .andExpect(jsonPath("$.message").value("Todo List"))
+                .andExpect(jsonPath("$.data.count").value(3))
+                .andExpect(jsonPath("$.data.todolist").isArray());
+    }
 }

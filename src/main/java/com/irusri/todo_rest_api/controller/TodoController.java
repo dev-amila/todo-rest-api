@@ -5,6 +5,7 @@ import com.irusri.todo_rest_api.dao.UserDao;
 import com.irusri.todo_rest_api.dto.response.paginated.PaginatedTodoResponseAllDTO;
 import com.irusri.todo_rest_api.entity.Todo;
 import com.irusri.todo_rest_api.entity.User;
+import com.irusri.todo_rest_api.enums.Priority;
 import com.irusri.todo_rest_api.service.TodoService;
 import com.irusri.todo_rest_api.util.StandardResponse;
 import com.irusri.todo_rest_api.webtoken.JwtService;
@@ -51,17 +52,17 @@ public class TodoController {
         );
     }
 
-    @GetMapping(path = "/sortlist",produces = "application/json", params = {"priority", "dueDate", "page", "size"})
+    @GetMapping(path = "/sortlist", produces = "application/json")
     public ResponseEntity<StandardResponse> getSortList(
             @RequestHeader (name="Authorization") String token,
-            @RequestParam(defaultValue = "HIGH") String priority,
-            @RequestParam(defaultValue = "#{T(java.time.LocalDate).now().toString()}") String dueDate,
+            @RequestParam(defaultValue = "HIGH") Priority priority,
+            @RequestParam(required = false) String dueDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         String email = jwtService.getEmailFromToken(token);
         Pageable pageable = PageRequest.of(page, size);
-        LocalDate dDate = LocalDate.parse(dueDate);
+        LocalDate dDate = (dueDate != null) ? LocalDate.parse(dueDate) : LocalDate.now();
         PaginatedTodoResponseAllDTO responseData = todoService.getAllSortedTodos( email,priority, dDate, pageable);
 
         return new ResponseEntity<>(
@@ -108,8 +109,8 @@ public class TodoController {
         HashMap<String,String> response = new HashMap<>();
         String errors="";
 
-        if(todo.getDeadline().before(Date.from(Instant.now()))) {
-            errors = errors + "<br> Please select a future date or time  for deadline of the todo task";
+        if (todo.getDeadline().isBefore(LocalDate.now())) {
+            errors = errors + "<br> Please select a future date or time for deadline of the todo task";
         }
         if(errors == ""){
             todoDao.save(todo);
