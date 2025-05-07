@@ -79,7 +79,7 @@ public class TodoController {
        if(optionalTodo.isPresent()){
            Todo todo = optionalTodo.get();
             if(!todo.getUser().getEmail().equals(email)) {
-                throw new AccessDeniedException("You are not Permitted to view this");
+                throw new AccessDeniedException("You are not Permitted to view the content");
             }
             return todoDao.findByMyId(id);
        }else{
